@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	//Tarea Asíncrona para llamar al WS de listado en segundo plano
+	//Tarea AsÃ­ncrona para llamar al WS de listado en segundo plano
 	private class TareaWSListar extends AsyncTask<String,Integer,Boolean> {
 		
 		private String[] clientes;
@@ -176,7 +176,7 @@ public class MainActivity extends Activity {
 	    }
 	}
 	
-	//Tarea Asíncrona para llamar al WS de consulta en segundo plano
+	//Tarea AsÃ­ncrona para llamar al WS de consulta en segundo plano
 	private class TareaWSObtener extends AsyncTask<String,Integer,Boolean> {
 		
 		private int idCli;
@@ -225,7 +225,7 @@ public class MainActivity extends Activity {
 	    }
 	}
 	
-	//Tarea Asíncrona para llamar al WS de actualización en segundo plano
+	//Tarea AsÃ­ncrona para llamar al WS de actualizaciÃ³n en segundo plano
 	private class TareaWSActualizar extends AsyncTask<String,Integer,Boolean> {
 		
 	    protected Boolean doInBackground(String... params) {
@@ -273,7 +273,7 @@ public class MainActivity extends Activity {
 	    }
 	}
 
-	//Tarea Asíncrona para llamar al WS de eliminación en segundo plano
+	//Tarea AsÃ­ncrona para llamar al WS de eliminaciÃ³n en segundo plano
 	private class TareaWSEliminar extends AsyncTask<String,Integer,Boolean> {
 		
 	    protected Boolean doInBackground(String... params) {
@@ -315,51 +315,62 @@ public class MainActivity extends Activity {
 	    }
 	}
 	
-	//Tarea Asíncrona para llamar al WS de inserción en segundo plano
-	private class TareaWSInsertar extends AsyncTask<String,Integer,Boolean> {
-		
-	    protected Boolean doInBackground(String... params) {
-	    	
-	    	boolean resul = true;
-	    	
-	    	HttpClient httpClient = new DefaultHttpClient();
-	        
-			HttpPost post = new HttpPost("http://10.0.2.2:2731/Api/Clientes/Cliente");
-			post.setHeader("content-type", "application/json");
-			
-			try
-	        {
-				//Construimos el objeto cliente en formato JSON
-				JSONObject dato = new JSONObject();
-				
-				//dato.put("Id", Integer.parseInt(txtId.getText().toString()));
-				dato.put("Nombre", params[0]);
-				dato.put("Telefono", Integer.parseInt(params[1]));
-				
-				StringEntity entity = new StringEntity(dato.toString());
-				post.setEntity(entity);
-				
-	        	HttpResponse resp = httpClient.execute(post);
-	        	String respStr = EntityUtils.toString(resp.getEntity());
-	        	
-	        	if(!respStr.equals("true"))
-	        		resul = false;
-	        }
-	        catch(Exception ex)
-	        {
-	        	Log.e("ServicioRest","Error!", ex);
-	        	resul = false;
-	        }
-	 
-	        return resul;
-	    }
-	    
-	    protected void onPostExecute(Boolean result) {
-	    	
-	    	if (result)
-	    	{
-	    		lblResultado.setText("Insertado OK.");
-	    	}
-	    }
-	}
+    //Tarea AsÃ­ncrona para llamar al WS de inserciÃ³n en segundo plano
+    private class TareaWSInsertar extends AsyncTask<String,Integer,Boolean> {
+        protected Boolean doInBackground(String... params) {
+            boolean resul = true;
+            try {
+                try {
+                    URL url = new URL("http://192.168.0.203/Api/Clientes/Cliente");
+                    try {
+                        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                        con.setDoOutput(true);
+                        con.setDoInput(true);
+                        con.setRequestProperty("Content-Type", "application/json");
+                        con.setRequestProperty("Accept", "application/json");
+                        con.setRequestMethod("POST");
+                        JSONObject dato = new JSONObject();
+                        try {
+                            dato.put("Nombre", params[0]);
+                            dato.put("Telefono", Integer.parseInt(params[1]));
+                        } catch (JSONException e) {
+                            Log.e("MYAPP", "unexpected JSON exception", e);
+                            finish();
+                        }
+                        OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+                        wr.write(dato.toString());
+                        wr.flush();
+                        int httpResponse = con.getResponseCode();
+                        if(httpResponse == HttpURLConnection.HTTP_OK)
+                        {
+                            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"));
+                            String valorDevuelto = null;
+                            valorDevuelto = br.readLine();
+                            if(!valorDevuelto.equals("true"))
+                            resul = false;
+                        } else {
+                            Log.e("ServicioRest", "Error resultado" + httpResponse);
+                            resul = false;
+                        }
+                    } catch(Exception ex) {
+                        Log.e("ServicioRest", "Error!", ex);
+                        resul = false;
+                    }
+                } catch(IOException ex) {
+                    ex.printStackTrace();
+                    resul = false;
+                }
+            } catch(Exception ex) {
+                Log.e("ServicioRest","Error!", ex);
+                resul = false;
+            }
+            return resul;
+        }
+        protected void onPostExecute(Boolean result) {
+            if (result)
+            {
+                lblResultado.setText("Insertado OK.");
+            }
+        }
+    }
 }
